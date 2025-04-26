@@ -1,0 +1,32 @@
+#!/bin/bash
+
+# fedit: fork + edit
+
+FILE=\"$1\"
+FORKDIR=\".forks\"
+EDITOR_CMD=\"${EDITOR:-nano}\"
+
+if [ -z \"$FILE\" ]; then
+  echo \"Usage: fedit filename\"
+  exit 1
+fi
+
+if [ ! -f \"$FILE\" ]; then
+  echo \"Error: File '$FILE' does not exist.\"
+  exit 1
+fi
+
+mkdir -p \"$FORKDIR\"
+
+# Find highest existing backup number
+HIGHEST=$(ls \"$FORKDIR\" 2>/dev/null | grep \"^$(basename \"$FILE\")\\.\" | awk -F. '{print $2}' | sort -n | tail -n 1)
+if [ -z \"$HIGHEST\" ]; then
+  NEXT=000
+else
+  NEXT=$(printf \"%03d\" $((10#$HIGHEST + 1)))
+fi
+
+cp \"$FILE\" \"$FORKDIR/$(basename \"$FILE\").$NEXT\"
+
+# Open for editing
+$EDITOR_CMD \"$FILE\"
