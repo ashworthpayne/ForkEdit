@@ -1,0 +1,30 @@
+#!/bin/bash
+
+# fundo: fork undo
+
+FILE=\"$1\"
+FORKDIR=\".forks\"
+EDITOR_CMD=\"${EDITOR:-nano}\"
+
+if [ -z \"$FILE\" ]; then
+  echo \"Usage: fundo filename\"
+  exit 1
+fi
+
+if [ ! -f \"$FORKDIR/$(basename \"$FILE\").000\" ]; then
+  echo \"Error: No backups found for '$FILE'.\"
+  exit 1
+fi
+
+# Find highest backup
+HIGHEST=$(ls \"$FORKDIR\" | grep \"^$(basename \"$FILE\")\\.\" | awk -F. '{print $2}' | sort -n | tail -n 1)
+if [ -z \"$HIGHEST\" ]; then
+  echo \"Error: No backups found for '$FILE'.\"
+  exit 1
+fi
+
+rm -f \"$FILE\"
+cp \"$FORKDIR/$(basename \"$FILE\").$HIGHEST\" \"$FILE\"
+
+# Open recovered file
+$EDITOR_CMD \"$FILE\"
